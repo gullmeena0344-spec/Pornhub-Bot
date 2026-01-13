@@ -1,15 +1,23 @@
-FROM python:3.9.5-buster
+FROM python:3.11-slim-bookworm
 
-RUN apt-get update && apt-get upgrade -y
+WORKDIR /app
 
-#Installing Requirements
-RUN apt-get install -y ffmpeg python3-pip opus-tools
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    aria2 \
+    curl \
+    coreutils \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-#Updating pip
-RUN python3.9 -m pip install -U pip
+# Install latest yt-dlp binary
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+    -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python3.9 -m pip install -U -r requirements.txt
-
-CMD python3 bot.py
+CMD ["python", "bot.py"]
